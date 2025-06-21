@@ -2,13 +2,6 @@
 
 A lightweight Python/Tkinter GUI application for practicing AWS Certified Solutions Architect Associate (SAA-C03) exam questions.
 
----
-
-## 📦 Repository
-
-**GitHub**: https://github.com/Ik0nw/aws_saa_questionBank
-
----
 
 ## ✨ Features
 
