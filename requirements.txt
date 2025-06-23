@@ -1,0 +1,4 @@
+python-dotenv
+requests
+tkinter
+markdown tkhtmlview
