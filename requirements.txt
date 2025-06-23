@@ -1,4 +1,5 @@
 python-dotenv
 requests
 tkinter
-markdown tkhtmlview
+markdown 
+tkhtmlview
