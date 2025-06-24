@@ -9,17 +9,22 @@ from dotenv import load_dotenv
 import markdown
 from tkhtmlview import HTMLLabel
 
-# ─── Load .env ───────────────────────────────────────────────────────────────
+# ─── Load environment variables ──────────────────────────────────────────────
 env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
+loaded = load_dotenv(dotenv_path=env_path,override=True)
+if not loaded:
+    print(f"⚠️ Warning: failed to load .env from {env_path}")
 
-API_KEY  = os.getenv('API_KEY')
-API_URL  = os.getenv('API_URL')
-LANGUAGE = os.getenv('LANGUAGE', '中文')
-MODEL    = os.getenv('MODEL', 'gpt-4o')
-USE_AI   = os.getenv('USE_AI', 'False').lower() in ('1','true','yes')
+API_KEY   = os.getenv('API_KEY')
+API_URL   = os.getenv('API_URL')
+LANGUAGE  = os.getenv('LANGUAGE', '中文')
+MODEL     = os.getenv('MODEL', 'gpt-4o')
+USE_AI    = os.getenv('USE_AI', 'False').lower() in ('1', 'true', 'yes')
 
-CACHE_FILE = "explanation_cache.json"
+CACHE_FILE  = "explanation_cache.json"
+WRONG_FILE  = "wrong_questions.json"
+
+# ─── Explanation cache ───────────────────────────────────────────────────────
 if os.path.exists(CACHE_FILE):
     with open(CACHE_FILE, 'r', encoding='utf-8') as f:
         explanation_cache = json.load(f)
@@ -38,8 +43,14 @@ def query_chatgpt(question_text, options_text):
         "- **标出题干关键点**\n"
         "- **分析每个选项**，说明对错并加粗关键词\n"
     )
-    headers = {"Authorization":f"Bearer {API_KEY}", "Content-Type":"application/json"}
-    payload = {"model":MODEL, "messages":[{"role":"user","content":prompt}]}
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": MODEL,
+        "messages": [{"role": "user", "content": prompt}]
+    }
 
     try:
         resp = requests.post(API_URL, headers=headers, json=payload)
@@ -57,12 +68,12 @@ def query_chatgpt(question_text, options_text):
 class QuizApp(tk.Tk):
     def __init__(self,
                  question_file="aws_saa_questions_with_votes.json",
-                 wrong_file="wrong_questions.json"):
+                 wrong_file=WRONG_FILE):
         super().__init__()
         self.title("AWS SAA-C03 Quiz App by ik0nw")
         self.geometry("900x800")
 
-        # ─── Fonts & wrapping ───────────────────────────────────
+        # ─── Fonts & wrapping ──────────────────────────────────────────
         self.title_font    = ("Arial", 18, "bold")
         self.question_font = ("Arial", 14)
         self.radio_font    = ("Arial", 12)
@@ -71,13 +82,13 @@ class QuizApp(tk.Tk):
         self.summary_font  = ("Arial", 16, "bold")
         self.wraplength    = 800
 
-        # ─── Load data ─────────────────────────────────────────
+        # ─── Files & data ─────────────────────────────────────────────
         self.question_file = question_file
         self.wrong_file    = wrong_file
         self.load_questions()
-        self.load_wrong_ids()
+        self.load_wrong_data()
 
-        # ─── State ─────────────────────────────────────────────
+        # ─── Quiz state ───────────────────────────────────────────────
         self.mode            = None
         self.num_questions   = 0
         self.question_pool   = []
@@ -86,8 +97,9 @@ class QuizApp(tk.Tk):
         self.incorrect_count = 0
         self.abs_start       = 1
 
-        self.selected_var    = tk.StringVar()
-        self.help_shown      = False
+        # ─── UI state ─────────────────────────────────────────────────
+        self.selected_var = tk.StringVar()
+        self.help_shown   = False
 
         self.create_mode_frame()
 
@@ -95,42 +107,87 @@ class QuizApp(tk.Tk):
         with open(self.question_file, 'r', encoding='utf-8') as f:
             self.questions = json.load(f)
 
-    def load_wrong_ids(self):
+    def load_wrong_data(self):
         if os.path.exists(self.wrong_file):
             with open(self.wrong_file, 'r', encoding='utf-8') as f:
-                self.wrong_ids = set(json.load(f))
+                raw = json.load(f)
+            # keys are strings in JSON
+            self.wrong_data = {int(k): v for k, v in raw.items()}
         else:
-            self.wrong_ids = set()
+            self.wrong_data = {}
 
-    def save_wrong_ids(self):
+    def save_wrong_data(self):
         with open(self.wrong_file, 'w', encoding='utf-8') as f:
-            json.dump(list(self.wrong_ids), f, ensure_ascii=False, indent=2)
+            json.dump({str(k): v for k, v in self.wrong_data.items()},
+                      f, ensure_ascii=False, indent=2)
 
-    # ─── Main Menu ───────────────────────────────────────────
+    # ─── Main Menu ──────────────────────────────────────────────────────
     def create_mode_frame(self):
         self.clear_frame()
-        frame = tk.Frame(self); frame.pack(pady=30)
+        frame = tk.Frame(self)
+        frame.pack(pady=30)
         tk.Label(frame,
                  text="AWS Certified Solutions Architect Associate (SAA-C03)",
-                 font=self.title_font).grid(row=0, column=0, columnspan=2, pady=5)
-        tk.Button(frame, text="In Order Mode",  font=self.button_font, width=18,
-                  command=self.setup_in_order).grid(row=1, column=0, padx=5, pady=5)
-        tk.Button(frame, text="Exam Mode",      font=self.button_font, width=18,
-                  command=self.setup_exam).grid(row=1, column=1, padx=5, pady=5)
-        tk.Button(frame, text="Revision Mode",  font=self.button_font, width=38,
-                  command=self.setup_revision).grid(row=2, column=0, columnspan=2, pady=5)
+                 font=self.title_font).grid(row=0,
+                                            column=0,
+                                            columnspan=2,
+                                            pady=5)
+        tk.Button(frame,
+                  text="In Order Mode",
+                  font=self.button_font,
+                  width=18,
+                  command=self.setup_in_order).grid(row=1,
+                                                    column=0,
+                                                    padx=5,
+                                                    pady=5)
+        tk.Button(frame,
+                  text="Exam Mode",
+                  font=self.button_font,
+                  width=18,
+                  command=self.setup_exam).grid(row=1,
+                                                column=1,
+                                                padx=5,
+                                                pady=5)
+        tk.Button(frame,
+                  text="Revision Mode",
+                  font=self.button_font,
+                  width=38,
+                  command=self.setup_revision).grid(row=2,
+                                                    column=0,
+                                                    columnspan=2,
+                                                    pady=5)
 
+    # ─── Mode setups ───────────────────────────────────────────────────
     def setup_in_order(self):
         self.clear_frame()
-        frame = tk.Frame(self); frame.pack(pady=50)
-        tk.Label(frame, text="Start from question #:", font=self.question_font).grid(row=0, column=0)
-        self.start_entry = tk.Entry(frame, font=self.question_font, width=5)
-        self.start_entry.grid(row=0, column=1)
-        tk.Label(frame, text="Number of questions:", font=self.question_font).grid(row=1, column=0)
-        self.num_entry = tk.Entry(frame, font=self.question_font, width=5)
-        self.num_entry.grid(row=1, column=1)
-        tk.Button(frame, text="Start Quiz", font=self.button_font, width=20,
-                  command=self.start_in_order).grid(row=2, column=0, columnspan=2, pady=10)
+        frame = tk.Frame(self)
+        frame.pack(pady=50)
+        tk.Label(frame,
+                 text="Start from question #:",
+                 font=self.question_font).grid(row=0,
+                                               column=0,
+                                               pady=5)
+        self.start_entry = tk.Entry(frame,
+                                    font=self.question_font,
+                                    width=5)
+        self.start_entry.grid(row=0, column=1, pady=5)
+        tk.Label(frame,
+                 text="Number of questions:",
+                 font=self.question_font).grid(row=1,
+                                               column=0,
+                                               pady=5)
+        self.num_entry = tk.Entry(frame,
+                                  font=self.question_font,
+                                  width=5)
+        self.num_entry.grid(row=1, column=1, pady=5)
+        tk.Button(frame,
+                  text="Start Quiz",
+                  font=self.button_font,
+                  width=20,
+                  command=self.start_in_order).grid(row=2,
+                                                    column=0,
+                                                    columnspan=2,
+                                                    pady=10)
         self.mode = 'in_order'
 
     def setup_exam(self):
@@ -141,12 +198,23 @@ class QuizApp(tk.Tk):
     def setup_revision(self):
         self.clear_frame()
         self.mode = 'revision'
-        self.question_pool = [self.questions[i] for i in sorted(self.wrong_ids)]
+        # only questions still in wrong_data
+        self.question_pool = [
+            self.questions[i] for i in sorted(self.wrong_data.keys())
+        ]
         self.num_questions = len(self.question_pool)
         if self.num_questions == 0:
-            tk.Label(self, text="No revision questions.", font=self.title_font).pack(pady=20)
-            tk.Button(self, text="Main Menu", command=self.create_mode_frame).pack()
+            tk.Label(self,
+                     text="No revision questions available.",
+                     font=self.title_font).pack(pady=20)
+            tk.Button(self,
+                      text="Main Menu",
+                      font=self.button_font,
+                      command=self.create_mode_frame).pack()
         else:
+            self.current_index = 0
+            self.correct_count = 0
+            self.incorrect_count = 0
             self.start_quiz()
 
     def start_in_order(self):
@@ -158,7 +226,7 @@ class QuizApp(tk.Tk):
         total = len(self.questions)
         start = max(1, min(start, total))
         end = min(start - 1 + count, total)
-        self.question_pool = self.questions[start-1:end]
+        self.question_pool = self.questions[start - 1:end]
         self.num_questions = len(self.question_pool)
         self.abs_start     = start
         self.current_index = 0
@@ -166,46 +234,61 @@ class QuizApp(tk.Tk):
         self.incorrect_count = 0
         self.start_quiz()
 
+    # ─── Quiz flow ───────────────────────────────────────────────────────
     def start_quiz(self):
         if self.mode == 'exam':
-            self.question_pool = random.sample(self.questions, self.num_questions)
+            self.question_pool = random.sample(self.questions,
+                                               self.num_questions)
         self.show_question()
 
-    # ─── Render Question ──────────────────────────────────────
     def show_question(self):
         self.clear_frame()
         q = self.question_pool[self.current_index]
         raw_correct = q.get('votes', [None])[0]
         correct_token = raw_correct.split()[0] if raw_correct else ""
-        # detect multi-answer
+        # multi-answer if more than 4 options
         self.is_multi = len(q['options']) > 4
         if self.is_multi:
-            self.correct_set = set(correct_token)   # e.g. "AC" -> {'A','C'}
+            self.correct_set = set(correct_token)
         else:
             self.correct = correct_token
 
         frame = tk.Frame(self, bd=2, relief='groove')
         frame.pack(fill='both', expand=True, padx=20, pady=20)
-        # question label with absolute index when in_order
+
+        # show overall index in in-order mode
         if self.mode == 'in_order':
-            lbl = f"Q {self.current_index+1}/{self.num_questions} (Overall #{self.abs_start + self.current_index})"
+            label_text = (f"Question {self.current_index+1}/{self.num_questions} "
+                          f"(Overall #{self.abs_start + self.current_index})")
         else:
-            lbl = f"Q {self.current_index+1}/{self.num_questions}"
-        tk.Label(frame, text=lbl, font=self.title_font).pack(anchor='w', pady=(0,10))
+            label_text = f"Question {self.current_index+1}/{self.num_questions}"
+        tk.Label(frame,
+                 text=label_text,
+                 font=self.title_font).pack(anchor='w', pady=(0,10))
 
         clean_q = re.sub(r'Question\s*#\d+\s*', '', q['question'].strip())
         tk.Label(frame,
                  text=clean_q,
                  font=self.question_font,
                  wraplength=self.wraplength,
-                 justify='left').pack(fill='x', pady=(0,20))
+                 justify='left').pack(fill='x',
+                                      pady=(0,10))
 
-        # clear previous selection vars
+        # in revision mode, remind last wrong answer
+        qid = self.questions.index(q)
+        if self.mode == 'revision' and qid in self.wrong_data:
+            last = self.wrong_data[qid].get('last_wrong')
+            if last:
+                tk.Label(frame,
+                         text=f"Last wrong answer: {last}",
+                         font=self.feedback_font,
+                         fg="orange").pack(anchor='w', pady=(0,10))
+
+        # clear selections
         self.selected_var.set("")
         self.multi_vars = {}
 
         if self.is_multi:
-            # render checkboxes
             for opt, txt in q['options'].items():
                 clean_txt = txt.split("Correct Answer:")[0].strip()
                 var = tk.BooleanVar()
@@ -218,7 +301,6 @@ class QuizApp(tk.Tk):
                 cb.pack(anchor='w', pady=3)
                 self.multi_vars[opt] = var
         else:
-            # render radio buttons
             for opt, txt in q['options'].items():
                 clean_txt = txt.split("Correct Answer:")[0].strip()
                 rb = tk.Radiobutton(frame,
@@ -230,7 +312,9 @@ class QuizApp(tk.Tk):
                                     justify='left')
                 rb.pack(anchor='w', pady=3)
 
-        self.feedback_label = tk.Label(frame, text="", font=self.feedback_font)
+        self.feedback_label = tk.Label(frame,
+                                       text="",
+                                       font=self.feedback_font)
         self.feedback_label.pack(pady=10)
 
         self.submit_btn = tk.Button(frame,
@@ -240,56 +324,71 @@ class QuizApp(tk.Tk):
                                     command=self.check_answer)
         self.submit_btn.pack(pady=10)
 
-    # ─── Check Answer ──────────────────────────────────────────
     def check_answer(self):
+        q = self.question_pool[self.current_index]
+        qid = self.questions.index(q)
+
+        # gather selection
         if self.is_multi:
             selected = {opt for opt, var in self.multi_vars.items() if var.get()}
-            correct = self.correct_set
-            is_right = (selected == correct)
+            selected_str = ",".join(sorted(selected))
+            is_right = (selected == self.correct_set)
         else:
             sel = self.selected_var.get()
+            selected_str = sel
             is_right = (sel == self.correct)
 
         if is_right:
             self.feedback_label.config(text="Correct!", fg="green")
             self.correct_count += 1
+            # in revision, track correct_count and remove if >=3
+            if self.mode == 'revision' and qid in self.wrong_data:
+                self.wrong_data[qid]['correct_count'] = self.wrong_data[qid].get('correct_count', 0) + 1
+                if self.wrong_data[qid]['correct_count'] >= 3:
+                    del self.wrong_data[qid]
+                self.save_wrong_data()
             self.submit_btn.config(text="Next", command=self.next_question)
+
         else:
-            # show wrong
-            ans = "".join(sorted(self.correct_set)) if self.is_multi else self.correct
+            # record wrong answer and reset correct_count
+            entry = self.wrong_data.get(qid, {'correct_count': 0, 'last_wrong': None})
+            entry['last_wrong'] = selected_str
+            entry.setdefault('correct_count', 0)
+            self.wrong_data[qid] = entry
+            self.save_wrong_data()
+
+            ans = (",".join(sorted(self.correct_set)) if self.is_multi else self.correct)
             self.feedback_label.config(text=f"Incorrect! Answer: {ans}", fg="red")
             self.incorrect_count += 1
-            self.wrong_ids.add(self.questions.index(self.question_pool[self.current_index]))
-            self.save_wrong_ids()
 
             if USE_AI:
-                # build prompt & popup
-                question_text = re.sub(r'Question\s*#\d+\s*', '', self.question_pool[self.current_index]['question'].strip())
-                options_text  = "\n".join(f"{k}. {v.split('Correct Answer:')[0].strip()}"
-                                          for k,v in self.question_pool[self.current_index]['options'].items())
+                # AI explanation popup
+                question_text = re.sub(r'Question\s*#\d+\s*', '', q['question'].strip())
+                options_text = "\n".join(
+                    f"{k}. {v.split('Correct Answer:')[0].strip()}"
+                    for k, v in q['options'].items()
+                )
                 explanation = query_chatgpt(question_text, options_text)
                 self.show_explanation_popup(explanation)
-                return
             else:
                 self.submit_btn.config(text="Next", command=self.next_question)
 
-    # ─── AI Explanation Popup ───────────────────────────────────
     def show_explanation_popup(self, explanation):
         popup = tk.Toplevel(self)
         popup.title("AI 解析")
         popup.geometry("700x500")
-        popup.transient(self); popup.grab_set()
+        popup.transient(self)
+        popup.grab_set()
 
         html = markdown.markdown(explanation)
         html_label = HTMLLabel(popup, html=html, background="white")
         html_label.pack(fill="both", expand=True, padx=10, pady=10)
         html_label.fit_height()
 
-        btn = tk.Button(popup,
-                        text="Next",
-                        font=self.button_font,
-                        command=lambda:[popup.destroy(), self.next_question()])
-        btn.pack(pady=10)
+        tk.Button(popup,
+                  text="Next",
+                  font=self.button_font,
+                  command=lambda: [popup.destroy(), self.next_question()]).pack(pady=10)
 
     def next_question(self):
         self.current_index += 1
@@ -300,17 +399,58 @@ class QuizApp(tk.Tk):
 
     def show_summary(self):
         self.clear_frame()
-        frame = tk.Frame(self); frame.pack(fill='both', expand=True, padx=20, pady=20)
-        tk.Label(frame, text="Session Summary", font=self.title_font).pack(pady=10)
-        stats = tk.Frame(frame); stats.pack(pady=20)
-        tk.Label(stats, text="Correct:", font=self.summary_font).grid(row=0, column=0, sticky='e')
-        tk.Label(stats, text=str(self.correct_count), font=self.summary_font, fg='green').grid(row=0, column=1)
-        tk.Label(stats, text="Wrong:",   font=self.summary_font).grid(row=1, column=0, sticky='e')
-        tk.Label(stats, text=str(self.incorrect_count), font=self.summary_font, fg='red').grid(row=1, column=1)
-        acc = self.correct_count/self.num_questions*100
-        tk.Label(stats, text="Accuracy:", font=self.summary_font).grid(row=2, column=0, sticky='e')
-        tk.Label(stats, text=f"{acc:.1f}%", font=self.summary_font, fg='blue').grid(row=2, column=1)
-        tk.Button(frame, text="Main Menu", font=self.button_font, command=self.create_mode_frame).pack(pady=10)
+        frame = tk.Frame(self)
+        frame.pack(fill='both', expand=True, padx=20, pady=20)
+        tk.Label(frame,
+                 text="Session Summary",
+                 font=self.title_font).pack(pady=10)
+        stats = tk.Frame(frame)
+        stats.pack(pady=20)
+        tk.Label(stats,
+                 text="Correct:",
+                 font=self.summary_font).grid(row=0,
+                                              column=0,
+                                              sticky='e',
+                                              padx=5)
+        tk.Label(stats,
+                 text=str(self.correct_count),
+                 font=self.summary_font,
+                 fg='green').grid(row=0,
+                                  column=1,
+                                  sticky='w',
+                                  padx=5)
+        tk.Label(stats,
+                 text="Wrong:",
+                 font=self.summary_font).grid(row=1,
+                                              column=0,
+                                              sticky='e',
+                                              padx=5)
+        tk.Label(stats,
+                 text=str(self.incorrect_count),
+                 font=self.summary_font,
+                 fg='red').grid(row=1,
+                                column=1,
+                                sticky='w',
+                                padx=5)
+        accuracy = self.correct_count / self.num_questions * 100
+        tk.Label(stats,
+                 text="Accuracy:",
+                 font=self.summary_font).grid(row=2,
+                                              column=0,
+                                              sticky='e',
+                                              padx=5)
+        tk.Label(stats,
+                 text=f"{accuracy:.1f}%",
+                 font=self.summary_font,
+                 fg='blue').grid(row=2,
+                                 column=1,
+                                 sticky='w',
+                                 padx=5)
+        tk.Button(frame,
+                  text="Main Menu",
+                  font=self.button_font,
+                  width=14,
+                  command=self.create_mode_frame).pack(pady=20)
 
     def clear_frame(self):
         for w in self.winfo_children():
