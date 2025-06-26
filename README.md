@@ -54,9 +54,9 @@ A lightweight Python and Tkinter application for practicing AWS Certified Soluti
 
    ```dotenv
    API_KEY=your_api_key_here
-   API_URL=https://api.deerapi.com/v1/chat/completions
-   LANGUAGE=your_preferred_language
-   MODEL=gpt-4o
+   API_URL=  # https://api.deerapi.com/v1/chat/completions
+   LANGUAGE=your_preferred_language # EN
+   MODEL=  #gpt-4o
    USE_AI=True
    ```
 2. Ensure the file is included in `.gitignore` to protect your credentials.
