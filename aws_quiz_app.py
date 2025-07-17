@@ -338,7 +338,11 @@ class QuizApp(tk.Tk):
                 correct_ans = "".join(sorted(self.correct_set))
             else:
                 correct_ans = self.correct
-            self.feedback_label.config(text=f"Incorrect! Answer: {correct_ans}", fg="red")
+            votes_text = ", ".join(q.get("votes", []))
+            self.feedback_label.config(
+                text=f"Incorrect! Answer: {votes_text}",
+                fg="red"
+            )
             self.incorrect_count += 1
 
             if USE_AI:
