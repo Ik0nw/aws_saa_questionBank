@@ -6178,7 +6178,8 @@
       "B": "Set up security groups and network access control lists (network ACLs) to control access to the database layer. Set up a single Amazon RDS database in a private subnet.",
       "C": "Create a VPC across two Availability Zones. Refactor the application to host the web tier, application tier, and database tier. Host each tier on its own private subnet with Auto Scaling groups for the web tier and application tier.",
       "D": "Use a single Amazon RDS database. Allow database access only from the application tier security group.",
-      "E": "Use Elastic Load Balancers in front of the web tier. Control access by using security groups containing references to each layer's security groups. F. Use an Amazon RDS database Multi-AZ cluster deployment in private subnets. Allow database access only from application tier security groups. Correct Answer: ACF"
+      "E": "Use Elastic Load Balancers in front of the web tier. Control access by using security groups containing references to each layer's security groups.",
+      "F": "Use an Amazon RDS database Multi-AZ cluster deployment in private subnets. Allow database access only from application tier security groups. Correct Answer: ACF"
     },
     "votes": [
       "CEF (100%)"
@@ -6192,7 +6193,8 @@
       "B": "Creation of an Amazon RDS DB instance and configuring the scheduled maintenance window",
       "C": "Configuration of additional software components on Amazon ECS for monitoring, patch management, log management, and host intrusion detection",
       "D": "Installation of patches for all minor and major database versions for Amazon RDS",
-      "E": "Ensure the physical security of the Amazon RDS infrastructure in the data center F. Encryption of the data that moves in transit through Direct Connect Correct Answer: BCF"
+      "E": "Ensure the physical security of the Amazon RDS infrastructure in the data center",
+      "F": "Encryption of the data that moves in transit through Direct Connect Correct Answer: BCF"
     },
     "votes": [
       "BCF (96%)",
@@ -6247,7 +6249,8 @@
       "B": "Use AWS Budgets to create a budget. Set the budget amount under the Billing dashboards of the required AWS accounts.",
       "C": "Create an IAM user for AWS Budgets to run budget actions with the required permissions.",
       "D": "Create an IAM role for AWS Budgets to run budget actions with the required permissions.",
-      "E": "Add an alert to notify the company when each account meets its budget threshold. Add a budget action that selects the IAM identity created with the appropriate config rule to prevent provisioning of additional resources. F. Add an alert to notify the company when each account meets its budget threshold. Add a budget action that selects the IAM identity created with the appropriate service control policy (SCP) to prevent provisioning of additional resources. Correct Answer: BDF"
+      "E": "Add an alert to notify the company when each account meets its budget threshold. Add a budget action that selects the IAM identity created with the appropriate config rule to prevent provisioning of additional resources.",
+      "F": "Add an alert to notify the company when each account meets its budget threshold. Add a budget action that selects the IAM identity created with the appropriate service control policy (SCP) to prevent provisioning of additional resources. Correct Answer: BDF"
     },
     "votes": [
       "BDF (66%)",
@@ -6762,7 +6765,8 @@
       "B": "Use Amazon Lex to create the written sentiment analysis reports.",
       "C": "Use Amazon Polly to convert the audio recordings into text.",
       "D": "Use Amazon Transcribe to convert the audio recordings in any language into text.",
-      "E": "Use Amazon Translate to translate text in any language to English. F. Use Amazon Comprehend to create the sentiment analysis reports. Correct Answer: DEF"
+      "E": "Use Amazon Translate to translate text in any language to English.",
+      "F": "Use Amazon Comprehend to create the sentiment analysis reports. Correct Answer: DEF"
     },
     "votes": [
       "DEF (100%)"
@@ -7064,7 +7068,8 @@
       "B": "Supporting client-side and server-side encryption",
       "C": "Building analytics workloads during specified hours and when the application is not active",
       "D": "Caching data to reduce the pressure on the backend database",
-      "E": "Scaling globally to support petabytes of data and tens of millions of requests per minute F. Creating a secondary replica of the cluster by using the AWS Management Console Correct Answer: BCE"
+      "E": "Scaling globally to support petabytes of data and tens of millions of requests per minute",
+      "F": "Creating a secondary replica of the cluster by using the AWS Management Console Correct Answer: BCE"
     },
     "votes": [
       "BCE (55%)",
@@ -7301,7 +7306,8 @@
       "B": "Request a wildcard certificate that matches the domains in AWS Certificate Manager (ACM) in a different Region.",
       "C": "Create hosted zones for each customer as required in Route 53. Create zone records that point to the API Gateway endpoint.",
       "D": "Request a wildcard certificate that matches the custom domain name in AWS Certificate Manager (ACM) in the same Region.",
-      "E": "Create multiple API endpoints for each customer in API Gateway. F. Create a custom domain name in API Gateway for the REST API. Import the certificate from AWS Certificate Manager (ACM). Correct Answer: CFD"
+      "E": "Create multiple API endpoints for each customer in API Gateway.",
+      "F": "Create a custom domain name in API Gateway for the REST API. Import the certificate from AWS Certificate Manager (ACM). Correct Answer: CFD"
     },
     "votes": [
       "ADF (100%)"
@@ -7427,7 +7433,8 @@
       "B": "Create an Amazon Elastic Container Service (Amazon ECS) service behind an Application Load Balancer to retrieve user information from Amazon RDS. Create an Amazon API Gateway endpoint to accept RESTful APIs. Send the API calls to the Lambda function.",
       "C": "Create an Amazon Cognito user pool to authenticate users.",
       "D": "Create an Amazon Cognito identity pool to authenticate users.",
-      "E": "Use AWS Amplify to serve the frontend web content with HTML, CSS, and JS. Use an integrated Amazon CloudFront configuration. F. Use Amazon S3 static web hosting with PHP, CSS, and JS. Use Amazon CloudFront to serve the frontend web content. Correct Answer: ACE"
+      "E": "Use AWS Amplify to serve the frontend web content with HTML, CSS, and JS. Use an integrated Amazon CloudFront configuration.",
+      "F": "Use Amazon S3 static web hosting with PHP, CSS, and JS. Use Amazon CloudFront to serve the frontend web content. Correct Answer: ACE"
     },
     "votes": [
       "ACE (79%)",
@@ -8205,7 +8212,8 @@
       "B": "Deploy an AWS Storage Gateway on premises in Amazon FSx File Gateway made.",
       "C": "Set up an AWS Glue crawler to create a table based on the data that is in Amazon S3.",
       "D": "Set up an Amazon EMR cluster with EMR File System (EMRFS) to query the data that is in Amazon S3. Provide access to analysts.",
-      "E": "Set up an Amazon Redshift cluster to query the data that is in Amazon S3. Provide access to analysts. F. Setup Amazon Athena to query the data that is in Amazon S3. Provide access to analysts. Correct Answer: CEF"
+      "E": "Set up an Amazon Redshift cluster to query the data that is in Amazon S3. Provide access to analysts.",
+      "F": "Setup Amazon Athena to query the data that is in Amazon S3. Provide access to analysts. Correct Answer: CEF"
     },
     "votes": [
       "ACF (96%)",
@@ -8220,7 +8228,8 @@
       "B": "Managing the virtualization hypervisor, storage systems, and the AWS services that run on Outposts",
       "C": "Physical security and access controls of the data center environment",
       "D": "Availability of the Outposts infrastructure including the power supplies, servers, and networking equipment within the Outposts racks",
-      "E": "Physical maintenance of Outposts components F. Providing extra capacity for Amazon ECS clusters to mitigate server failures and maintenance events Correct Answer: ACE"
+      "E": "Physical maintenance of Outposts components",
+      "F": "Providing extra capacity for Amazon ECS clusters to mitigate server failures and maintenance events Correct Answer: ACE"
     },
     "votes": [
       "ACF (49%)",
@@ -9309,7 +9318,8 @@
       "B": "Create an S3 bucket that has object versioning enabled.",
       "C": "Configure a default retention period of 30 days for the objects.",
       "D": "Configure an S3 Lifecycle policy to protect the objects for 30 days.",
-      "E": "Configure an S3 Lifecycle policy to expire the objects after 30 days. F. Configure the backup solution to tag the objects with a 30-day retention period Correct Answer: CEF"
+      "E": "Configure an S3 Lifecycle policy to expire the objects after 30 days.",
+      "F": "Configure the backup solution to tag the objects with a 30-day retention period Correct Answer: CEF"
     },
     "votes": [
       "ACE (73%)",
@@ -12073,7 +12083,8 @@
       "B": "Configure the security group for the web tier to allow outbound HTTPS traffic to 0.0.0.0/0.",
       "C": "Configure the security group for the database tier to allow inbound Microsoft SQL Server traffic from the security group for the application tier.",
       "D": "Configure the security group for the database tier to allow outbound HTTPS traffic and Microsoft SQL Server traffic to the security group for the web tier.",
-      "E": "Configure the security group for the application tier to allow inbound HTTPS traffic from the security group for the web tier. F. Configure the security group for the application tier to allow outbound HTTPS traffic and Microsoft SQL Server traffic to the security group for the web tier. Correct Answer: ACE"
+      "E": "Configure the security group for the application tier to allow inbound HTTPS traffic from the security group for the web tier.",
+      "F": "Configure the security group for the application tier to allow outbound HTTPS traffic and Microsoft SQL Server traffic to the security group for the web tier. Correct Answer: ACE"
     },
     "votes": [
       "ACE (100%)"
